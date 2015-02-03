@@ -19,6 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
+import java.util.TimeZone;
 
 import net.sf.json.JSONObject;
 
@@ -59,6 +60,7 @@ public class VersionNumberBuilder extends BuildWrapper {
     
     private boolean skipFailedBuilds;
     private boolean useAsBuildDisplayName; 
+    private boolean useUTCTime;
     
     public VersionNumberBuilder(String versionNumberString,
             String projectStartDate,
@@ -82,12 +84,14 @@ public class VersionNumberBuilder extends BuildWrapper {
                                 String buildsThisYear,
                                 String buildsAllTime,
                                 boolean skipFailedBuilds,
-                                boolean useAsBuildDisplayName) {
+                                boolean useAsBuildDisplayName,
+                                boolean useUTCTime) {
         this.versionNumberString = versionNumberString;
         this.projectStartDate = parseDate(projectStartDate);
         this.environmentVariableName = environmentVariableName;
         this.skipFailedBuilds = skipFailedBuilds;
         this.useAsBuildDisplayName = useAsBuildDisplayName;
+        this.useUTCTime = useUTCTime;
         
         try {
             oBuildsToday = Integer.parseInt(buildsToday);
@@ -134,6 +138,10 @@ public class VersionNumberBuilder extends BuildWrapper {
     
     public boolean getUseAsBuildDisplayName() {
     	return this.useAsBuildDisplayName;
+    }
+    
+    public boolean getUseUTCTime() {
+    	return this.useUTCTime;
     }
     
     private static Date parseDate(String dateString) {
@@ -299,6 +307,8 @@ public class VersionNumberBuilder extends BuildWrapper {
                         String fmtString = argumentString.substring(argumentString.indexOf('"') + 1, argumentString.indexOf('"', argumentString.indexOf('"') + 1));
                         fmt = new SimpleDateFormat(fmtString);
                     }
+                    if (this.useUTCTime)
+                    	fmt.setTimeZone(TimeZone.getTimeZone("UTC"))
                     replaceValue = fmt.format(buildDate.getTime());
                 } else if ("BUILD_DAY".equals(expressionKey)) {
                     replaceValue = sizeTo(Integer.toString(buildDate.get(Calendar.DAY_OF_MONTH)), argumentString.length());
